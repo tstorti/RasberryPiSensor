@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/tstorti/RasberryPiServer#readme",
   "dependencies": {
-    "firebase": "^4.1.3"
+    "firebase": "^4.1.3",
+    "node-adafruit-bme280": "^1.0.2"
   }
 }
