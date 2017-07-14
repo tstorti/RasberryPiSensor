@@ -1,0 +1,22 @@
+{
+  "name": "rasberry_pi_server",
+  "version": "1.0.0",
+  "description": "node.js server for rasberry pi data collection",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tstorti/RasberryPiServer.git"
+  },
+  "author": "Tony Storti",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tstorti/RasberryPiServer/issues"
+  },
+  "homepage": "https://github.com/tstorti/RasberryPiServer#readme",
+  "dependencies": {
+    "firebase": "^4.1.3"
+  }
+}
