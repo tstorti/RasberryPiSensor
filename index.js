@@ -10,11 +10,9 @@ var app = {
 	currentHumidity:null,
 	currentPressure:null,
 	sessionInterval:null,
-	isCollecting:null,
+	isCollecting:false,
 
 	firebaseConnect:function(){
-		//check out below link for managing isOnline
-		/*https://firebase.google.com/docs/database/web/offline-capabilities*/
 
 		firebase.initializeApp(keys.firebaseKeys);
 		//set basic variables for new child in firebase
@@ -24,14 +22,15 @@ var app = {
 	},
 	newSession:function(sessionName){
 		//show selected event name
-		firebase.database().ref().on("value", function(snapshot) {
-			if(snapshot.val().current_session !== "off" && app.isCollecting ===false){
+		firebase.database().ref().child("status").on("value", function(snapshot) {
+			if(snapshot.val().isRecording === true && app.isCollecting ===false){
 				console.log("collecting data");
 				app.collectData(snapshot.val().current_session);
 			}
-			else if(snapshot.val().current_session ==="off"){
+			else if(snapshot.val().isRecording ===false){
 				console.log("stopping data collection");
 				clearInterval(app.sessionInterval);
+				app.isCollecting=false;
 			}
 		});
 	},
@@ -47,6 +46,7 @@ var app = {
 				app.currentHumidity = humidity;
 				
 				firebase.database().ref().child("historic_sessions").child(sessionKey).child("data").child(moment().format("YYYY-MM-DD HH:mm:ss")).set({
+					"timestamp":moment().format("YYYY-MM-DD HH:mm:ss"),
 					"temperature": app.currentTemp,
 					"humidity": app.currentHumidity,
 					"pressure": app.currentPressure,
