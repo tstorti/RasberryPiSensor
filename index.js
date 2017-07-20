@@ -2,7 +2,7 @@
 var keys = require("./keys.js");
 var firebase = require('firebase');
 var BME280 = require('node-adafruit-bme280');
-var gpio = require("gpio");
+var gpio = require("rpi-gpio");
 var moment = require("moment");
 
 
@@ -20,6 +20,19 @@ var app = {
 		firebase.database().ref().child("status").update({
 			"isOnline":true,
 		});
+		firebase.database().ref(".info/connected").on("value",function(snapshot){
+			if(snapshot.val() === true){
+				console.log("connected to firebase");
+				
+				var connection = firebase.database().ref("status/connections/sensors").push();
+				
+				connection.onDisconnect().remove();
+				
+				connection.set(true);
+				app.connectionLightOn();
+			}
+		});
+
 	},
 	newSession:function(sessionName){
 		//show selected event name
@@ -32,10 +45,12 @@ var app = {
 				console.log("stopping data collection");
 				clearInterval(app.sessionInterval);
 				app.isCollecting=false;
+				app.collectionLightOff();
 			}
 		});
 	},
-	collectData:function(sessionKey){	
+	collectData:function(sessionKey){
+		this.collectionLightOn();	
 		this.isCollecting = true;
 		this.sessionInterval=setInterval(function(){
 			BME280.probe(function(temperature, pressure, humidity) {
@@ -54,30 +69,26 @@ var app = {
 				});	
 			});			
 		},5000);
-
-		
+	},
+	collectionLightOn:function(){
+		gpio.write(11,true);
+	},
+	collectionLightOff:function(){
+		gpio.write(11,false);
+	},
+	connectionLightOn:function(){
+		gpio.write(12,true);
+	},
+	connectionLightOff:function(){
+		gpio.write(12,false);
 	},
 };
+
+gpio.setup(11,gpio.DIR_OUT,app.collectionLightOff);
+gpio.setup(12,gpio.DIR_OUT,app.connectionLightOff);
 
 app.firebaseConnect();
 app.newSession();
 
-var gpio17 = gpio.export(17, {
-	ready:function(){
 
-	}
-});
-//turn on LED
-gpio17.set();
 
-//turn off LED
-//gpio16.set(0);
-
-gpio18 = gpio.export(18, {
-	ready: function() {
-		intervalTimer = setInterval(function() {
-			gpio18.set();
-			setTimeout(function() { gpio18.reset(); }, 500);
-		}	, 1000);
-	}
-});
