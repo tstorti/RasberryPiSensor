@@ -2,6 +2,7 @@
 var keys = require("./keys.js");
 var firebase = require('firebase');
 var BME280 = require('node-adafruit-bme280');
+var gpio = require("gpio");
 var moment = require("moment");
 
 
@@ -16,7 +17,7 @@ var app = {
 
 		firebase.initializeApp(keys.firebaseKeys);
 		//set basic variables for new child in firebase
-		firebase.database().ref().update({
+		firebase.database().ref().child("status").update({
 			"isOnline":true,
 		});
 	},
@@ -53,11 +54,30 @@ var app = {
 				});	
 			});			
 		},5000);
+
+		
 	},
 };
 
 app.firebaseConnect();
 app.newSession();
 
+var gpio17 = gpio.export(17, {
+	ready:function(){
 
+	}
+});
+//turn on LED
+gpio17.set();
 
+//turn off LED
+//gpio16.set(0);
+
+gpio18 = gpio.export(18, {
+	ready: function() {
+		intervalTimer = setInterval(function() {
+			gpio18.set();
+			setTimeout(function() { gpio18.reset(); }, 500);
+		}	, 1000);
+	}
+});
