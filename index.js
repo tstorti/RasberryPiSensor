@@ -12,23 +12,31 @@ var app = {
 	currentPressure:null,
 	sessionInterval:null,
 	isCollecting:false,
+	sensorKey:null,
 
 	firebaseConnect:function(){
 
 		firebase.initializeApp(keys.firebaseKeys);
 		//set basic variables for new child in firebase
-		firebase.database().ref().child("status").update({
-			"isOnline":true,
-		});
+		// firebase.database().ref().child("sensors").update({
+		// 	"isOnline":true,
+		// });
 		firebase.database().ref(".info/connected").on("value",function(snapshot){
 			if(snapshot.val() === true){
 				console.log("connected to firebase");
 				
 				var connection = firebase.database().ref("status/connections/sensors").push();
+				var sensor = firebase.database().ref("sensors/online").child(keys.sensorID);
 				
 				connection.onDisconnect().remove();
+				sensor.onDisconnect().remove();
 				
 				connection.set(true);
+				sensor.set({
+					"id": keys.sensorID,
+					"isRecording":false,
+					"currentSession":null,
+				});
 				app.connectionLightOn();
 			}
 		});
@@ -36,7 +44,7 @@ var app = {
 	},
 	newSession:function(sessionName){
 		//show selected event name
-		firebase.database().ref().child("status").on("value", function(snapshot) {
+		firebase.database().ref().child("sensors/online").child(keys.sensorID).on("value", function(snapshot) {
 			if(snapshot.val().isRecording === true && app.isCollecting ===false){
 				console.log("collecting data");
 				app.collectData(snapshot.val().current_session);
@@ -62,6 +70,7 @@ var app = {
 				app.currentHumidity = humidity;
 				
 				firebase.database().ref().child("historic_sessions").child(sessionKey).child("data").child(moment().format("YYYY-MM-DD HH:mm:ss")).set({
+					"sensorID":keys.sensorID,
 					"timestamp":moment().format("YYYY-MM-DD HH:mm:ss"),
 					"temperature": app.currentTemp,
 					"humidity": app.currentHumidity,
